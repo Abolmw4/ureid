@@ -1,5 +1,5 @@
 import os.path
-from html.parser import piclose
+import time
 from multiprocessing import Process, Queue
 from datetime import datetime
 from typing import Union, List, Any
@@ -123,12 +123,10 @@ class Ureid(Process):
         except Exception as error:
             LOG.error(f"{error}")
 
-
     def __calculate_distance(self, query: torch.Tensor, gallery: torch.Tensor) -> float:
         cosi = torch.nn.CosineSimilarity()
         cosi_value = cosi(query, gallery).item() * 100
         return cosi_value
-
 
     def assign_id(self, person: List[Any], threshold: float) -> List[Any]:
         cls = type(self)
@@ -198,7 +196,38 @@ class Ureid(Process):
         
 
 class WriteVideo(Process):
-    def __init__(self):
+    def __init__(self, queue: Queue):
         super().__init__()
-        pass
+        self.queue = queue
 
+    def __del__(self):
+        print("object deleted")
+
+    def run(self):
+        LOG.info("******* WriteVideo up *********")
+        cap = cv2.VideoCapture("/home/abolfazl/Documents/unsupervised_reidentification/reid_service/data/2ea2019c4dc49ca5d632862eab31396840421758-480p.mp4")
+        LOG.debug(f"{cap.get(6)} fps | fram_count:{cap.get(7)}")
+        out = cv2.VideoWriter( "data/output.avi", cv2.VideoWriter_fourcc(*'XVID'), 80.0, (int(cap.get(3)), int(cap.get(4))))
+        while self.queue.qsize() < 10:
+            time.sleep(5)
+        while True:
+            ret, frame = cap.read()
+            if ret:
+                person = pickle.loads(self.queue.get())
+                frame = person['frame']
+                id = person["id"]
+                cordinate = person["cordinate"]
+                try:
+                    image = cv2.rectangle(frame, (int(cordinate[0]), int(cordinate[1])), (int(cordinate[2]), int(cordinate[3])), (255, 0, 0), thickness=2)
+                    image = cv2.putText(image, str(id), (int(cordinate[0]), int(cordinate[1])), cv2.FONT_HERSHEY_SIMPLEX,
+                                    1, (0, 255, 0), 1, cv2.LINE_AA)
+                    out.write(image)
+                    LOG.debug("write frame successfully")
+                except Exception as error:
+                    LOG.error(f"{error}")
+            else:
+                break
+        cap.release()
+        out.release()
+        cv2.destroyAllWindows()
+        LOG.debug("******* WriteVideo down *********")
