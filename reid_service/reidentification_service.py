@@ -7,13 +7,13 @@ import numpy as np
 import torch.cuda
 import torchvision.transforms as T
 from reid_service.reidentification_util import load_json_file
-from reidentification_util import LOG
+from reid_service.reidentification_util import LOG
 from ultralytics import YOLO
 import cv2
 import mediapipe as mp
 import pickle
 
-CONFIG_SRC = "../configs/config_service.json"
+CONFIG_SRC = "configs/config_service.json"
 
 class Ureid(Process):
     test_transformer = T.Compose([T.ToTensor(), T.Resize((256, 128), interpolation=3), T.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),])
@@ -205,9 +205,9 @@ class WriteVideo(Process):
 
     def run(self):
         LOG.info("******* WriteVideo up *********")
-        cap = cv2.VideoCapture("/home/abolfazl/Documents/unsupervised_reidentification/reid_service/data/2ea2019c4dc49ca5d632862eab31396840421758-480p.mp4")
+        cap = cv2.VideoCapture("/home/abolfazl/Documents/unsupervised_reidentification/reid_service/data/d637bd641e3c337ad47768145d1c887e54013697-1080p.mp4")
         LOG.debug(f"{cap.get(6)} fps | fram_count:{cap.get(7)}")
-        out = cv2.VideoWriter( "data/output.avi", cv2.VideoWriter_fourcc(*'XVID'), 80.0, (int(cap.get(3)), int(cap.get(4))))
+        out = cv2.VideoWriter( "/home/abolfazl/Documents/unsupervised_reidentification/reid_service/data/output.avi", cv2.VideoWriter_fourcc(*'XVID'), 80.0, (int(cap.get(3)), int(cap.get(4))))
         while self.queue.qsize() < 10:
             time.sleep(5)
         while True:
