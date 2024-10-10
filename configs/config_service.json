@@ -3,7 +3,7 @@
   "visibility_score_for_body_landmarks": 0.65,
   "item_elapsed_gallery": 3,
   "similarity_threshold": 70.00,
-  "reid_model": "../weights/reidNet.pt",
-  "yolo_model": "../weights/yolov8s.pt",
-  "vidoe_src": "data/2ea2019c4dc49ca5d632862eab31396840421758-480p.mp4"
+  "reid_model": "weights/reidNet.pt",
+  "yolo_model": "weights/yolov8s.pt",
+  "vidoe_src": "reid_service/data/d637bd641e3c337ad47768145d1c887e54013697-1080p.mp4"
 }
