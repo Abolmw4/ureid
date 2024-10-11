@@ -196,6 +196,7 @@ class Ureid(Process):
         
 
 class WriteVideo(Process):
+    config = load_json_file(CONFIG_SRC)
     def __init__(self, queue: Queue):
         super().__init__()
         self.queue = queue
@@ -205,14 +206,15 @@ class WriteVideo(Process):
 
     def run(self):
         LOG.info("******* WriteVideo up *********")
-        cap = cv2.VideoCapture("/home/abolfazl/Documents/unsupervised_reidentification/reid_service/data/d637bd641e3c337ad47768145d1c887e54013697-1080p.mp4")
+        cls = type(self)
+        cap = cv2.VideoCapture(cls.config["vidoe_src"])
         LOG.debug(f"{cap.get(6)} fps | fram_count:{cap.get(7)}")
-        out = cv2.VideoWriter( "/home/abolfazl/Documents/unsupervised_reidentification/reid_service/data/output.avi", cv2.VideoWriter_fourcc(*'XVID'), 80.0, (int(cap.get(3)), int(cap.get(4))))
+        out = cv2.VideoWriter( "reid_service/data/output1.avi", cv2.VideoWriter_fourcc(*'XVID'), cls.config["fps"], (int(cap.get(3)), int(cap.get(4))))
         while self.queue.qsize() < 10:
             time.sleep(5)
         while True:
             ret, frame = cap.read()
-            if ret:
+            if ret or self.queue.qsize() > 0:
                 person = pickle.loads(self.queue.get())
                 frame = person['frame']
                 id = person["id"]
@@ -220,7 +222,7 @@ class WriteVideo(Process):
                 try:
                     image = cv2.rectangle(frame, (int(cordinate[0]), int(cordinate[1])), (int(cordinate[2]), int(cordinate[3])), (255, 0, 0), thickness=2)
                     image = cv2.putText(image, str(id), (int(cordinate[0]), int(cordinate[1])), cv2.FONT_HERSHEY_SIMPLEX,
-                                    1, (0, 255, 0), 1, cv2.LINE_AA)
+                                    1, (0, 0, 255), 1, cv2.LINE_AA)
                     out.write(image)
                     LOG.debug("write frame successfully")
                 except Exception as error:
